@@ -18,6 +18,7 @@ async function run (){
     try{
         await client.connect();
         const serviceCollection = client.db('doctors-portal').collection('services');
+        const bookingCollection = client.db('doctors-portal').collection('booking');
 
         app.get('/service', async(req, res) => {
             const query = {};
@@ -26,9 +27,20 @@ async function run (){
             res.send(services);
         })
 
+        app.post('/booking', async (req, res) => {
+            const booking = req.body;
+            const query = {treatment: booking.treatment, date: booking.date, patient: booking.patient}
+            const exixts = await bookingCollection.findOne(query);
+            if (exixts) {
+                return res.send({success: false, booking: exixts});
+            }
+            const result = await bookingCollection.insertOne(booking);
+            return res.send({success: true, result});
+        })
+
     }
     finally{
-
+        console.log('MongoDB Connected');
     }
 }
 run().catch(console.dir);
